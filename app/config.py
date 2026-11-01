@@ -17,6 +17,9 @@ class Config:
 
 class DevelopmentConfig(Config):
     DEBUG = True
+    FERNET_KEY = os.environ.get(
+        "FERNET_KEY", "RYJ5GII1AdUF4SqN-f4_63BPtIXpIgegDrSHfEiLiZg="
+    )
 
 
 class TestingConfig(Config):

@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Painel - GeTraf{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold text-gray-800">Painel de Relatórios</h1>
+    <a href="{{ url_for('cliente.painel_pdf', periodo_inicio=periodo_inicio, periodo_fim=periodo_fim) }}"
+       class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">
+        Exportar PDF
+    </a>
+</div>
+
+<form method="GET" class="mb-6 flex items-center gap-4">
+    <div>
+        <label class="text-sm text-gray-600">De:</label>
+        <input type="date" name="periodo_inicio" value="{{ periodo_inicio }}"
+               class="border border-gray-300 rounded px-3 py-2 text-sm">
+    </div>
+    <div>
+        <label class="text-sm text-gray-600">Até:</label>
+        <input type="date" name="periodo_fim" value="{{ periodo_fim }}"
+               class="border border-gray-300 rounded px-3 py-2 text-sm">
+    </div>
+    <button type="submit" class="bg-gray-100 text-gray-700 px-4 py-2 rounded hover:bg-gray-200 text-sm">Atualizar</button>
+</form>
+
+<div class="bg-white rounded-lg shadow p-4">
+    <iframe src="{{ embed_url }}"
+            style="width:100%; height:800px; border:none;"
+            allowfullscreen></iframe>
+</div>
+{% endblock %}

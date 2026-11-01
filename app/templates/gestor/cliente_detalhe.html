@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}{{ empresa.nome }} - GeTraf{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <h1 class="text-2xl font-bold text-gray-800 mb-6">{{ empresa.nome }}</h1>
+
+    <div class="bg-white rounded-lg shadow p-6 space-y-4">
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <p class="text-sm text-gray-500">Segmento</p>
+                <p class="font-medium">{{ empresa.segmento or 'Não informado' }}</p>
+            </div>
+            <div>
+                <p class="text-sm text-gray-500">Teto de Verba Mensal</p>
+                <p class="font-medium">{% if empresa.teto_verba_mensal %}R$ {{ "%.2f"|format(empresa.teto_verba_mensal) }}{% else %}Não definido{% endif %}</p>
+            </div>
+            <div>
+                <p class="text-sm text-gray-500">Gestor</p>
+                <p class="font-medium">{{ empresa.gestor.nome }}</p>
+            </div>
+            <div>
+                <p class="text-sm text-gray-500">Status da Conexão</p>
+                <p class="font-medium">
+                    {% if empresa.status_conexao == 'conectado' %}
+                    <span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">Conectado</span>
+                    {% elif empresa.status_conexao == 'reconexao_necessaria' %}
+                    <span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs">Reconexão necessária</span>
+                    {% else %}
+                    <span class="bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-xs">Aguardando conexão</span>
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+
+        <div class="flex gap-3 pt-4 border-t">
+            {% if empresa.status_conexao in ['aguardando', 'reconexao_necessaria'] %}
+            <a href="{{ url_for('gestor.conectar_meta', id=empresa.id) }}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Conectar Meta</a>
+            {% endif %}
+            <a href="{{ url_for('leads.lista', empresa_id=empresa.id) }}" class="bg-gray-100 text-gray-700 px-4 py-2 rounded hover:bg-gray-200">Ver Leads</a>
+            {% if empresa.status_conexao == 'conectado' %}
+            <a href="{{ url_for('gestor.cliente_painel', id=empresa.id) }}" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Ver Painel</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block title %}Leads - GeTraf{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold text-gray-800">Leads — {{ empresa.nome }}</h1>
+</div>
+
+<form method="GET" class="mb-4">
+    <select name="status" onchange="this.form.submit()" class="border border-gray-300 rounded px-3 py-2 text-sm">
+        <option value="">Todos os status</option>
+        <option value="novo" {% if status_filter == 'novo' %}selected{% endif %}>Novo</option>
+        <option value="orcamento" {% if status_filter == 'orcamento' %}selected{% endif %}>Orçamento</option>
+        <option value="contrato" {% if status_filter == 'contrato' %}selected{% endif %}>Contrato</option>
+        <option value="perdido" {% if status_filter == 'perdido' %}selected{% endif %}>Perdido</option>
+    </select>
+</form>
+
+<div class="bg-white rounded-lg shadow overflow-hidden">
+    <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+            <tr>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nome</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Telefone</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Campanha</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Valor</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Data</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ação</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+            {% for lead in leads.items %}
+            <tr>
+                <td class="px-4 py-3 text-sm">{{ lead.nome or '-' }}</td>
+                <td class="px-4 py-3 text-sm text-gray-600">{{ lead.telefone or '-' }}</td>
+                <td class="px-4 py-3 text-sm text-gray-600">{{ lead.origem_campanha or '-' }}</td>
+                <td class="px-4 py-3 text-sm">
+                    {% if lead.status == 'novo' %}
+                    <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs">Novo</span>
+                    {% elif lead.status == 'orcamento' %}
+                    <span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs">Orçamento</span>
+                    {% elif lead.status == 'contrato' %}
+                    <span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">Contrato</span>
+                    {% else %}
+                    <span class="bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs">Perdido</span>
+                    {% endif %}
+                </td>
+                <td class="px-4 py-3 text-sm">{% if lead.valor_contrato %}R$ {{ "%.2f"|format(lead.valor_contrato) }}{% else %}-{% endif %}</td>
+                <td class="px-4 py-3 text-sm text-gray-600">{{ lead.criado_em.strftime('%d/%m/%Y') }}</td>
+                <td class="px-4 py-3 text-sm">
+                    {% if lead.status not in ['contrato', 'perdido'] %}
+                    <form method="POST" action="{{ url_for('leads.atualizar_status', lead_id=lead.id) }}" class="flex items-center gap-2">
+                        {{ form.hidden_tag() }}
+                        <select name="novo_status" class="border border-gray-300 rounded px-2 py-1 text-xs">
+                            {% if lead.status == 'novo' %}
+                            <option value="orcamento">Orçamento</option>
+                            <option value="perdido">Perdido</option>
+                            {% elif lead.status == 'orcamento' %}
+                            <option value="contrato">Contrato</option>
+                            <option value="perdido">Perdido</option>
+                            <option value="novo">Novo</option>
+                            {% endif %}
+                        </select>
+                        <input type="number" name="valor_contrato" step="0.01" min="0.01" placeholder="Valor R$"
+                               class="border border-gray-300 rounded px-2 py-1 text-xs w-24 hidden"
+                               id="valor_{{ lead.id }}">
+                        <button type="submit" class="text-indigo-600 hover:underline text-xs">Salvar</button>
+                    </form>
+                    <script>
+                        document.querySelector('form[action*="{{ lead.id }}"] select[name="novo_status"]').addEventListener('change', function() {
+                            var valorInput = document.getElementById('valor_{{ lead.id }}');
+                            valorInput.classList.toggle('hidden', this.value !== 'contrato');
+                            if (this.value === 'contrato') valorInput.required = true;
+                            else { valorInput.required = false; valorInput.value = ''; }
+                        });
+                    </script>
+                    {% else %}
+                    <span class="text-gray-400 text-xs">—</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="7" class="px-4 py-6 text-center text-gray-500">Nenhum lead encontrado.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if leads.pages > 1 %}
+<div class="flex justify-center mt-4 gap-2">
+    {% if leads.has_prev %}
+    <a href="?pagina={{ leads.prev_num }}&status={{ status_filter or '' }}" class="px-3 py-1 bg-gray-200 rounded text-sm hover:bg-gray-300">Anterior</a>
+    {% endif %}
+    <span class="px-3 py-1 text-sm text-gray-600">Página {{ leads.page }} de {{ leads.pages }}</span>
+    {% if leads.has_next %}
+    <a href="?pagina={{ leads.next_num }}&status={{ status_filter or '' }}" class="px-3 py-1 bg-gray-200 rounded text-sm hover:bg-gray-300">Próxima</a>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}

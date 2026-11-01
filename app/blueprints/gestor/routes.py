@@ -1,3 +1,5 @@
+import uuid as _uuid
+
 from flask import flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 
@@ -18,7 +20,7 @@ def clientes():
     if current_user.perfil == "gestor_dono":
         query = Empresa.query
         if filtro_gestor:
-            query = query.filter_by(gestor_id=filtro_gestor)
+            query = query.filter_by(gestor_id=_uuid.UUID(filtro_gestor))
         gestores = Usuario.query.filter(
             Usuario.perfil.in_(["gestor", "gestor_dono"])
         ).all()

@@ -1,7 +1,7 @@
 import uuid
 from datetime import UTC, datetime
 
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Uuid
 
 from app.extensions import db
 
@@ -9,12 +9,10 @@ from app.extensions import db
 class MetricaDiaria(db.Model):
     __tablename__ = "metrica_diaria"
 
-    id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    empresa_id = db.Column(
-        UUID(as_uuid=True), db.ForeignKey("empresa.id"), nullable=False
-    )
+    id = db.Column(Uuid, primary_key=True, default=uuid.uuid4)
+    empresa_id = db.Column(Uuid, db.ForeignKey("empresa.id"), nullable=False)
     conta_anuncio_id = db.Column(
-        UUID(as_uuid=True), db.ForeignKey("conta_anuncio.id"), nullable=False
+        Uuid, db.ForeignKey("conta_anuncio.id"), nullable=False
     )
     data = db.Column(db.Date, nullable=False)
     campanha_id = db.Column(db.String(100), nullable=False)

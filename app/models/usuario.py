@@ -3,7 +3,7 @@ from datetime import UTC, datetime
 
 import bcrypt
 from flask_login import UserMixin
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Uuid
 
 from app.extensions import db, login_manager
 
@@ -11,7 +11,7 @@ from app.extensions import db, login_manager
 class Usuario(UserMixin, db.Model):
     __tablename__ = "usuario"
 
-    id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = db.Column(Uuid, primary_key=True, default=uuid.uuid4)
     email = db.Column(db.String(255), unique=True, nullable=False)
     senha_hash = db.Column(db.String(255), nullable=False)
     nome = db.Column(db.String(150), nullable=False)
@@ -24,9 +24,7 @@ class Usuario(UserMixin, db.Model):
         nullable=False,
         default="pendente",
     )
-    empresa_id = db.Column(
-        UUID(as_uuid=True), db.ForeignKey("empresa.id"), nullable=True
-    )
+    empresa_id = db.Column(Uuid, db.ForeignKey("empresa.id"), nullable=True)
     criado_em = db.Column(
         db.DateTime, nullable=False, default=lambda: datetime.now(UTC)
     )

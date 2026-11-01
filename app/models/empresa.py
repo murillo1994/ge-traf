@@ -1,7 +1,7 @@
 import uuid
 from datetime import UTC, datetime
 
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Uuid
 
 from app.extensions import db
 
@@ -9,13 +9,11 @@ from app.extensions import db
 class Empresa(db.Model):
     __tablename__ = "empresa"
 
-    id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = db.Column(Uuid, primary_key=True, default=uuid.uuid4)
     nome = db.Column(db.String(200), nullable=False)
     segmento = db.Column(db.String(100), nullable=True)
     teto_verba_mensal = db.Column(db.Numeric(12, 2), nullable=True)
-    gestor_id = db.Column(
-        UUID(as_uuid=True), db.ForeignKey("usuario.id"), nullable=False
-    )
+    gestor_id = db.Column(Uuid, db.ForeignKey("usuario.id"), nullable=False)
     status_conexao = db.Column(
         db.Enum(
             "aguardando",

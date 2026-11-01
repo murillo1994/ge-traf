@@ -18,4 +18,8 @@ COPY . .
 
 EXPOSE 5000
 
-CMD ["gunicorn", "-b", "0.0.0.0:5000", "-w", "2", "app:create_app()"]
+COPY entrypoint.sh .
+RUN chmod +x entrypoint.sh
+
+ENTRYPOINT ["./entrypoint.sh"]
+CMD ["gunicorn", "-b", "0.0.0.0:5000", "-w", "2", "wsgi:app"]

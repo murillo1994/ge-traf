@@ -4,11 +4,13 @@ services:
     ports:
       - "5000:5000"
     env_file: .env
+    environment:
+      FLASK_APP: wsgi.py
     depends_on:
-      - postgres
-      - redis
-    volumes:
-      - .:/app
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
 
   postgres:
     image: postgres:16-alpine
@@ -20,6 +22,12 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+      - ./init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U getraf"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   redis:
     image: redis:7-alpine
@@ -39,15 +47,20 @@ services:
       MB_DB_HOST: postgres
       MB_SITE_LOCALE: pt
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
 
   worker:
     build: .
     command: python worker.py
     env_file: .env
+    environment:
+      FLASK_APP: wsgi.py
     depends_on:
-      - postgres
-      - redis
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
 
 volumes:
   pgdata:

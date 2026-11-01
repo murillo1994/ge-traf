@@ -1,7 +1,7 @@
 import uuid
 from datetime import UTC, datetime
 
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Uuid
 
 from app.extensions import db
 
@@ -9,10 +9,8 @@ from app.extensions import db
 class ContaAnuncio(db.Model):
     __tablename__ = "conta_anuncio"
 
-    id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    empresa_id = db.Column(
-        UUID(as_uuid=True), db.ForeignKey("empresa.id"), nullable=False
-    )
+    id = db.Column(Uuid, primary_key=True, default=uuid.uuid4)
+    empresa_id = db.Column(Uuid, db.ForeignKey("empresa.id"), nullable=False)
     plataforma = db.Column(
         db.Enum("meta", "google", name="plataforma_enum"),
         nullable=False,

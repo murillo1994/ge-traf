@@ -135,6 +135,34 @@ python -m ruff format .
 - **Leads** — Transições de status, valor obrigatório para contrato, log de auditoria
 - **Sync** — Criação de métricas, token expirado marca reconexão, upsert sem duplicatas
 
+## Deploy na VPS (Hostinger)
+
+```bash
+# Na VPS, rode:
+curl -fsSL https://raw.githubusercontent.com/murillo1994/ge-traf/master/deploy/setup-vps.sh | bash
+
+# Criar gestor dono
+cd /opt/getraf
+docker compose exec portal flask create-owner
+
+# Configurar Metabase
+pip3 install requests
+python3 deploy/setup-metabase.py
+# Copie a METABASE_SECRET_KEY para o .env
+
+# Configurar Nginx + SSL
+sudo apt install nginx certbot python3-certbot-nginx
+sudo cp deploy/nginx.conf /etc/nginx/sites-available/getraf
+sudo ln -s /etc/nginx/sites-available/getraf /etc/nginx/sites-enabled/
+# Edite o domínio no arquivo e rode:
+sudo certbot --nginx -d SEU-DOMINIO.com.br
+sudo systemctl reload nginx
+```
+
+### Metabase Dashboard
+
+Após o setup, crie o dashboard no Metabase (http://localhost:3000) com as 6 queries em `deploy/metabase-dashboard-queries.sql`. Cada query usa `{{empresa_id}}` como filtro, travado via JWT no embed assinado.
+
 ## Segurança
 
 - Tokens de Meta/Google criptografados com Fernet (nunca expostos no frontend ou logs)

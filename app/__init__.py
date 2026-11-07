@@ -9,6 +9,10 @@ def create_app(config_name="default"):
     flask_app = Flask(__name__)
     flask_app.config.from_object(config[config_name])
 
+    from werkzeug.middleware.proxy_fix import ProxyFix
+
+    flask_app.wsgi_app = ProxyFix(flask_app.wsgi_app, x_for=1, x_proto=1, x_host=1)
+
     db.init_app(flask_app)
     migrate.init_app(flask_app, db)
     login_manager.init_app(flask_app)

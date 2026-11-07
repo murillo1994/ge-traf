@@ -41,6 +41,7 @@
             <a href="{{ url_for('leads.lista', empresa_id=empresa.id) }}" class="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200">Ver Leads</a>
             {% if empresa.status_conexao == 'conectado' %}
             <a href="{{ url_for('gestor.cliente_painel', id=empresa.id) }}" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">Ver Painel</a>
+            <a href="{{ url_for('gestor.cliente_pdf', id=empresa.id) }}" class="bg-brand-900 text-gold-400 px-4 py-2 rounded-lg hover:bg-brand-800">Exportar PDF</a>
             {% endif %}
         </div>
     </div>

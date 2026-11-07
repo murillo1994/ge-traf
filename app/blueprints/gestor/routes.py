@@ -269,6 +269,30 @@ def meta_callback():
     return redirect(url_for("gestor.cliente_detalhe", id=empresa.id))
 
 
+@bp.route("/clientes/<uuid:id>/pdf")
+@login_required
+@role_required("gestor_dono", "gestor")
+@empresa_required
+def cliente_pdf(id, empresa=None):
+    from datetime import date, timedelta
+
+    from flask import Response
+
+    from app.services.pdf_export import gerar_pdf_painel
+
+    periodo_inicio = request.args.get(
+        "periodo_inicio", (date.today() - timedelta(days=30)).isoformat()
+    )
+    periodo_fim = request.args.get("periodo_fim", date.today().isoformat())
+    pdf_bytes = gerar_pdf_painel(empresa.id, periodo_inicio, periodo_fim)
+    filename = f"relatorio_{empresa.nome.replace(' ', '_')}_{date.today().strftime('%Y%m%d')}.pdf"
+    return Response(
+        pdf_bytes,
+        content_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename={filename}"},
+    )
+
+
 @bp.route("/gestores")
 @login_required
 @role_required("gestor_dono")

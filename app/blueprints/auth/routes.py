@@ -64,6 +64,16 @@ def registro():
     return render_template("auth/registro.html", form=form)
 
 
+@bp.route("/privacidade")
+def privacidade():
+    return render_template("auth/privacidade.html")
+
+
+@bp.route("/termos")
+def termos():
+    return render_template("auth/termos.html")
+
+
 def _redirect_by_perfil(usuario):
     if usuario.perfil in ("gestor_dono", "gestor"):
         return redirect(url_for("gestor.clientes"))

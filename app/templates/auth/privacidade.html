@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Política de Privacidade - GeTraf{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto mt-10 bg-white p-8 rounded-lg shadow">
+    <h1 class="text-2xl font-bold text-gray-800 mb-6">Política de Privacidade</h1>
+    <p class="text-sm text-gray-500 mb-6">Última atualização: novembro de 2026</p>
+
+    <div class="space-y-4 text-gray-700 text-sm leading-relaxed">
+        <h2 class="text-lg font-semibold text-gray-800">1. Informações coletadas</h2>
+        <p>O GeTraf coleta as seguintes informações para fornecer o serviço de gestão de tráfego pago:</p>
+        <ul class="list-disc pl-6 space-y-1">
+            <li>Dados de cadastro (nome, email)</li>
+            <li>Tokens de acesso às plataformas de anúncio (Meta Ads, Google Ads), armazenados de forma criptografada</li>
+            <li>Métricas de campanhas publicitárias (impressões, cliques, conversões, custos)</li>
+            <li>Dados de leads (origem, status, valor de contrato)</li>
+        </ul>
+
+        <h2 class="text-lg font-semibold text-gray-800">2. Uso das informações</h2>
+        <p>As informações são utilizadas exclusivamente para:</p>
+        <ul class="list-disc pl-6 space-y-1">
+            <li>Gerar relatórios e dashboards de desempenho de campanhas</li>
+            <li>Permitir o acompanhamento de leads e conversões</li>
+            <li>Fornecer métricas consolidadas aos gestores e seus clientes</li>
+        </ul>
+
+        <h2 class="text-lg font-semibold text-gray-800">3. Proteção dos dados</h2>
+        <p>Tokens de acesso às plataformas de anúncio são criptografados com Fernet (AES-128-CBC) e nunca são exibidos em interfaces ou registrados em logs. O acesso aos dados é restrito por empresa (multi-tenant), garantindo que cada cliente veja apenas seus próprios dados.</p>
+
+        <h2 class="text-lg font-semibold text-gray-800">4. Compartilhamento</h2>
+        <p>Não compartilhamos dados pessoais ou de campanhas com terceiros. Os dados são acessados apenas pelos gestores autorizados e seus respectivos clientes.</p>
+
+        <h2 class="text-lg font-semibold text-gray-800">5. Exclusão de dados</h2>
+        <p>O usuário pode solicitar a exclusão de seus dados a qualquer momento entrando em contato pelo email mypaywise@gmail.com. Tokens de acesso podem ser revogados diretamente nas plataformas de anúncio.</p>
+
+        <h2 class="text-lg font-semibold text-gray-800">6. Contato</h2>
+        <p>Para dúvidas sobre privacidade, entre em contato: <a href="mailto:mypaywise@gmail.com" class="text-indigo-600 hover:underline">mypaywise@gmail.com</a></p>
+    </div>
+</div>
+{% endblock %}

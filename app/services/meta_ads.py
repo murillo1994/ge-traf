@@ -29,7 +29,7 @@ def exchange_code_for_token(code, redirect_uri):
         app_secret = os.environ.get("META_APP_SECRET")
 
         resp = requests.get(
-            "https://graph.facebook.com/v19.0/oauth/access_token",
+            "https://graph.facebook.com/v21.0/oauth/access_token",
             params={
                 "client_id": app_id,
                 "client_secret": app_secret,

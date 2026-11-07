@@ -1,25 +1,27 @@
 services:
   portal:
     build: .
+    container_name: getraf_portal
     ports:
-      - "5000:5000"
+      - "5080:5000"
     env_file: .env
     environment:
       FLASK_APP: wsgi.py
+      FLASK_CONFIG: production
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_started
+    restart: unless-stopped
 
   postgres:
     image: postgres:16-alpine
+    container_name: getraf_db
     environment:
       POSTGRES_DB: getraf
       POSTGRES_USER: getraf
-      POSTGRES_PASSWORD: getraf
-    ports:
-      - "5432:5432"
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-getraf_prod_secret}
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
@@ -28,39 +30,45 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    restart: unless-stopped
 
   redis:
     image: redis:7-alpine
-    ports:
-      - "6379:6379"
+    container_name: getraf_redis
+    restart: unless-stopped
 
   metabase:
     image: metabase/metabase:latest
+    container_name: getraf_metabase
     ports:
-      - "3000:3000"
+      - "5081:3000"
     environment:
       MB_DB_TYPE: postgres
       MB_DB_DBNAME: metabase
       MB_DB_PORT: 5432
       MB_DB_USER: getraf
-      MB_DB_PASS: getraf
+      MB_DB_PASS: ${POSTGRES_PASSWORD:-getraf_prod_secret}
       MB_DB_HOST: postgres
       MB_SITE_LOCALE: pt
     depends_on:
       postgres:
         condition: service_healthy
+    restart: unless-stopped
 
   worker:
     build: .
+    container_name: getraf_worker
     command: python worker.py
     env_file: .env
     environment:
       FLASK_APP: wsgi.py
+      FLASK_CONFIG: production
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_started
+    restart: unless-stopped
 
 volumes:
   pgdata:

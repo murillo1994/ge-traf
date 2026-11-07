@@ -73,26 +73,36 @@ def cliente_detalhe(id, empresa=None):
 def conectar_meta(id, empresa=None):
     from app.services.meta_ads import get_oauth_url
 
-    redirect_uri = url_for("gestor.meta_callback", id=empresa.id, _external=True)
+    redirect_uri = url_for("gestor.meta_callback", _external=True)
     oauth_url = get_oauth_url(redirect_uri, state=str(empresa.id))
     return redirect(oauth_url)
 
 
-@bp.route("/clientes/<uuid:id>/meta-callback")
+@bp.route("/meta-callback")
 @login_required
 @role_required("gestor", "gestor_dono")
-@empresa_required
-def meta_callback(id, empresa=None):
+def meta_callback():
     from app.models.conta_anuncio import ContaAnuncio
+    from app.models.empresa import Empresa as EmpresaModel
     from app.services.crypto import encrypt_token
     from app.services.meta_ads import exchange_code_for_token
+
+    state = request.args.get("state")
+    if not state:
+        flash("Estado inválido no callback.", "error")
+        return redirect(url_for("gestor.clientes"))
+
+    empresa = EmpresaModel.query.get(_uuid.UUID(state))
+    if not empresa:
+        flash("Empresa não encontrada.", "error")
+        return redirect(url_for("gestor.clientes"))
 
     code = request.args.get("code")
     if not code:
         flash("Autorização não concedida pelo Meta.", "error")
         return redirect(url_for("gestor.cliente_detalhe", id=empresa.id))
 
-    redirect_uri = url_for("gestor.meta_callback", id=empresa.id, _external=True)
+    redirect_uri = url_for("gestor.meta_callback", _external=True)
     token_data = exchange_code_for_token(code, redirect_uri)
 
     if not token_data:

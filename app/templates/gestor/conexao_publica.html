@@ -49,12 +49,18 @@
                 <p class="mt-2 text-gray-500">Não fazemos alterações nas suas campanhas.</p>
             </div>
 
-            <a href="{{ url_for('gestor.conexao_publica_autorizar', token=token) }}"
-               class="block w-full bg-brand-900 text-gold-400 py-3 rounded-lg hover:bg-brand-800 font-semibold text-center text-lg">
-                Conectar com Meta
-            </a>
+            <div class="space-y-3">
+                <a href="{{ url_for('gestor.conexao_publica_autorizar', token=token, plataforma='meta') }}"
+                   class="block w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 font-semibold text-center text-lg">
+                    Conectar Meta (Facebook/Instagram)
+                </a>
+                <a href="{{ url_for('gestor.conexao_publica_autorizar', token=token, plataforma='google') }}"
+                   class="block w-full bg-red-600 text-white py-3 rounded-lg hover:bg-red-700 font-semibold text-center text-lg">
+                    Conectar Google Ads
+                </a>
+            </div>
 
-            <p class="text-xs text-gray-400 text-center mt-4">Ao clicar, você será redirecionado para o Facebook para autorizar o acesso.</p>
+            <p class="text-xs text-gray-400 text-center mt-4">Você será redirecionado para autorizar o acesso. Conecte uma ou ambas as plataformas.</p>
         </div>
         {% endif %}
     </div>

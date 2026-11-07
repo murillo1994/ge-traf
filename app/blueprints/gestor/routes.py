@@ -78,6 +78,86 @@ def conectar_meta(id, empresa=None):
     return redirect(oauth_url)
 
 
+@bp.route("/clientes/<uuid:id>/conectar-google")
+@login_required
+@role_required("gestor", "gestor_dono")
+@empresa_required
+def conectar_google(id, empresa=None):
+    from app.services.google_ads import get_oauth_url
+
+    redirect_uri = url_for("gestor.google_callback", _external=True)
+    oauth_url = get_oauth_url(redirect_uri, state=str(empresa.id))
+    return redirect(oauth_url)
+
+
+@bp.route("/google-callback")
+@login_required
+@role_required("gestor", "gestor_dono")
+def google_callback():
+    from app.models.conta_anuncio import ContaAnuncio
+    from app.models.empresa import Empresa as EmpresaModel
+    from app.services.crypto import encrypt_token
+    from app.services.google_ads import exchange_code_for_token
+
+    state = request.args.get("state")
+    if not state:
+        flash("Estado inválido no callback.", "error")
+        return redirect(url_for("gestor.clientes"))
+
+    empresa = EmpresaModel.query.get(_uuid.UUID(state))
+    if not empresa:
+        flash("Empresa não encontrada.", "error")
+        return redirect(url_for("gestor.clientes"))
+
+    code = request.args.get("code")
+    if not code:
+        flash("Autorização não concedida pelo Google.", "error")
+        return redirect(url_for("gestor.cliente_detalhe", id=empresa.id))
+
+    redirect_uri = url_for("gestor.google_callback", _external=True)
+    token_data = exchange_code_for_token(code, redirect_uri)
+
+    if not token_data:
+        flash("Erro ao obter token do Google. Tente novamente.", "error")
+        return redirect(url_for("gestor.cliente_detalhe", id=empresa.id))
+
+    token_criptografado = encrypt_token(token_data["access_token"])
+    refresh_criptografado = (
+        encrypt_token(token_data["refresh_token"]) if token_data.get("refresh_token") else None
+    )
+
+    conta = ContaAnuncio.query.filter_by(
+        empresa_id=empresa.id, plataforma="google"
+    ).first()
+    if conta:
+        conta.token_criptografado = token_criptografado
+        conta.refresh_token_criptografado = refresh_criptografado
+        conta.conta_id_externo = token_data.get("account_id", "")
+        conta.status = "ativo"
+    else:
+        conta = ContaAnuncio(
+            empresa_id=empresa.id,
+            plataforma="google",
+            conta_id_externo=token_data.get("account_id", ""),
+            token_criptografado=token_criptografado,
+            refresh_token_criptografado=refresh_criptografado,
+        )
+        db.session.add(conta)
+
+    empresa.status_conexao = "conectado"
+    db.session.commit()
+
+    auditoria.registrar_acao(
+        empresa_id=empresa.id,
+        usuario_id=current_user.id,
+        acao="conta_google_conectada",
+        entidade_tipo="conta_anuncio",
+        entidade_id=conta.id,
+    )
+    flash("Conta Google Ads conectada com sucesso.", "success")
+    return redirect(url_for("gestor.cliente_detalhe", id=empresa.id))
+
+
 @bp.route("/clientes/<uuid:id>/link-conexao")
 @login_required
 @role_required("gestor", "gestor_dono")
@@ -122,7 +202,8 @@ def conexao_publica(token):
 def conexao_publica_autorizar(token):
     import jwt
     from flask import current_app
-    from app.services.meta_ads import get_oauth_url
+
+    plataforma = request.args.get("plataforma", "meta")
 
     try:
         payload = jwt.decode(token, current_app.config["SECRET_KEY"], algorithms=["HS256"])
@@ -130,40 +211,95 @@ def conexao_publica_autorizar(token):
         flash("Link expirado ou inválido.", "error")
         return render_template("gestor/conexao_publica.html", empresa=None, erro=True)
 
-    redirect_uri = url_for("gestor.meta_callback_publico", _external=True)
-    state = f"pub:{payload['empresa_id']}:{token}"
+    state = f"pub:{plataforma}:{payload['empresa_id']}:{token}"
+
+    if plataforma == "google":
+        from app.services.google_ads import get_oauth_url
+        redirect_uri = url_for("gestor.callback_publico_google", _external=True)
+    else:
+        from app.services.meta_ads import get_oauth_url
+        redirect_uri = url_for("gestor.meta_callback_publico", _external=True)
+
     oauth_url = get_oauth_url(redirect_uri, state=state)
     return redirect(oauth_url)
 
 
-@bp.route("/meta-callback-pub")
-def meta_callback_publico():
-    import jwt
+def _parse_public_state(state_str):
+    """Parse state from public OAuth callback. Format: pub:<plataforma>:<empresa_id>:<jwt_token>"""
+    import jwt as pyjwt
     from flask import current_app
-    from app.models.conta_anuncio import ContaAnuncio
-    from app.services.crypto import encrypt_token
-    from app.services.meta_ads import exchange_code_for_token
 
-    state = request.args.get("state", "")
-    if not state.startswith("pub:"):
-        flash("Estado inválido.", "error")
-        return render_template("gestor/conexao_resultado.html", sucesso=False)
+    if not state_str.startswith("pub:"):
+        return None, None, "Estado inválido."
 
-    parts = state.split(":", 2)
-    if len(parts) < 3:
-        flash("Estado inválido.", "error")
-        return render_template("gestor/conexao_resultado.html", sucesso=False)
+    parts = state_str.split(":", 3)
+    # Support old format pub:<empresa_id>:<token> and new pub:<plataforma>:<empresa_id>:<token>
+    if len(parts) == 4:
+        _, plataforma, empresa_id_str, token = parts
+    elif len(parts) == 3:
+        _, empresa_id_str, token = parts
+        plataforma = "meta"
+    else:
+        return None, None, "Estado inválido."
 
-    empresa_id_str, token = parts[1], parts[2]
     try:
-        jwt.decode(token, current_app.config["SECRET_KEY"], algorithms=["HS256"])
-    except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
-        flash("Link expirado.", "error")
-        return render_template("gestor/conexao_resultado.html", sucesso=False)
+        pyjwt.decode(token, current_app.config["SECRET_KEY"], algorithms=["HS256"])
+    except (pyjwt.ExpiredSignatureError, pyjwt.InvalidTokenError):
+        return None, None, "Link expirado."
 
     empresa = Empresa.query.get(_uuid.UUID(empresa_id_str))
     if not empresa:
-        flash("Empresa não encontrada.", "error")
+        return None, None, "Empresa não encontrada."
+
+    return empresa, plataforma, None
+
+
+def _salvar_conta_publica(empresa, plataforma, token_data):
+    from app.models.conta_anuncio import ContaAnuncio
+    from app.services.crypto import encrypt_token
+
+    token_criptografado = encrypt_token(token_data["access_token"])
+    refresh_criptografado = (
+        encrypt_token(token_data["refresh_token"]) if token_data.get("refresh_token") else None
+    )
+
+    conta = ContaAnuncio.query.filter_by(empresa_id=empresa.id, plataforma=plataforma).first()
+    if conta:
+        conta.token_criptografado = token_criptografado
+        if refresh_criptografado:
+            conta.refresh_token_criptografado = refresh_criptografado
+        conta.conta_id_externo = token_data.get("account_id", "")
+        conta.status = "ativo"
+    else:
+        conta = ContaAnuncio(
+            empresa_id=empresa.id,
+            plataforma=plataforma,
+            conta_id_externo=token_data.get("account_id", ""),
+            token_criptografado=token_criptografado,
+            refresh_token_criptografado=refresh_criptografado,
+        )
+        db.session.add(conta)
+
+    empresa.status_conexao = "conectado"
+    db.session.commit()
+
+    auditoria.registrar_acao(
+        empresa_id=empresa.id,
+        usuario_id=empresa.gestor_id,
+        acao=f"conta_{plataforma}_conectada_via_link",
+        entidade_tipo="conta_anuncio",
+        entidade_id=conta.id,
+    )
+    return conta
+
+
+@bp.route("/meta-callback-pub")
+def meta_callback_publico():
+    from app.services.meta_ads import exchange_code_for_token
+
+    empresa, plataforma, erro = _parse_public_state(request.args.get("state", ""))
+    if erro:
+        flash(erro, "error")
         return render_template("gestor/conexao_resultado.html", sucesso=False)
 
     code = request.args.get("code")
@@ -178,31 +314,32 @@ def meta_callback_publico():
         flash("Erro ao obter token do Meta.", "error")
         return render_template("gestor/conexao_resultado.html", sucesso=False)
 
-    token_criptografado = encrypt_token(token_data["access_token"])
-    conta = ContaAnuncio.query.filter_by(empresa_id=empresa.id, plataforma="meta").first()
-    if conta:
-        conta.token_criptografado = token_criptografado
-        conta.conta_id_externo = token_data.get("account_id", "")
-        conta.status = "ativo"
-    else:
-        conta = ContaAnuncio(
-            empresa_id=empresa.id,
-            plataforma="meta",
-            conta_id_externo=token_data.get("account_id", ""),
-            token_criptografado=token_criptografado,
-        )
-        db.session.add(conta)
+    _salvar_conta_publica(empresa, "meta", token_data)
+    return render_template("gestor/conexao_resultado.html", sucesso=True, empresa=empresa)
 
-    empresa.status_conexao = "conectado"
-    db.session.commit()
 
-    auditoria.registrar_acao(
-        empresa_id=empresa.id,
-        usuario_id=empresa.gestor_id,
-        acao="conta_meta_conectada_via_link",
-        entidade_tipo="conta_anuncio",
-        entidade_id=conta.id,
-    )
+@bp.route("/google-callback-pub")
+def callback_publico_google():
+    from app.services.google_ads import exchange_code_for_token
+
+    empresa, plataforma, erro = _parse_public_state(request.args.get("state", ""))
+    if erro:
+        flash(erro, "error")
+        return render_template("gestor/conexao_resultado.html", sucesso=False)
+
+    code = request.args.get("code")
+    if not code:
+        flash("Autorização não concedida.", "error")
+        return render_template("gestor/conexao_resultado.html", sucesso=False)
+
+    redirect_uri = url_for("gestor.callback_publico_google", _external=True)
+    token_data = exchange_code_for_token(code, redirect_uri)
+
+    if not token_data:
+        flash("Erro ao obter token do Google.", "error")
+        return render_template("gestor/conexao_resultado.html", sucesso=False)
+
+    _salvar_conta_publica(empresa, "google", token_data)
     return render_template("gestor/conexao_resultado.html", sucesso=True, empresa=empresa)
 
 

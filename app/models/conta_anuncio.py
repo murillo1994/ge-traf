@@ -17,6 +17,7 @@ class ContaAnuncio(db.Model):
     )
     conta_id_externo = db.Column(db.String(100), nullable=False)
     token_criptografado = db.Column(db.LargeBinary, nullable=False)
+    refresh_token_criptografado = db.Column(db.LargeBinary, nullable=True)
     token_expira_em = db.Column(db.DateTime, nullable=True)
     status = db.Column(
         db.Enum("ativo", "expirado", "revogado", name="status_conta_enum"),

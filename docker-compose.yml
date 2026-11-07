@@ -13,6 +13,9 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
+    networks:
+      - default
+      - proxy_default
     restart: unless-stopped
 
   postgres:
@@ -69,6 +72,10 @@ services:
       redis:
         condition: service_started
     restart: unless-stopped
+
+networks:
+  proxy_default:
+    external: true
 
 volumes:
   pgdata:

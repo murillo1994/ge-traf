@@ -6,11 +6,13 @@ logger = logging.getLogger(__name__)
 
 def get_oauth_url(redirect_uri, state=None):
     app_id = os.environ.get("META_APP_ID")
+    from urllib.parse import quote
+
     params = (
-        f"https://www.facebook.com/v19.0/dialog/oauth"
+        f"https://www.facebook.com/v21.0/dialog/oauth"
         f"?client_id={app_id}"
-        f"&redirect_uri={redirect_uri}"
-        f"&scope=ads_read"
+        f"&redirect_uri={quote(redirect_uri, safe='')}"
+        f"&scope=ads_read,business_management"
         f"&response_type=code"
     )
     if state:

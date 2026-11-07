@@ -3,29 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}GeTraf{% endblock %}</title>
+    <title>{% block title %}MyPaywise{% endblock %}</title>
     <script src="https://cdn.tailwindcss.com/3.4.1"></script>
+    <script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                colors: {
+                    brand: { 900: '#0a0a0a', 800: '#1a1a1a', 700: '#2a2a2a', 600: '#3a3a3a', 500: '#4a4a4a' },
+                    gold: { 50: '#fdf8e8', 100: '#f9edcc', 200: '#f3db99', 300: '#edc966', 400: '#d4a935', 500: '#b8922e', 600: '#967627', 700: '#745a1f' },
+                }
+            }
+        }
+    }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>body { font-family: 'Inter', sans-serif; }</style>
 </head>
 <body class="bg-gray-50 min-h-screen">
-    <nav class="bg-indigo-600 text-white shadow-lg">
+    <nav class="bg-brand-900 text-white shadow-lg">
         <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-            <a href="/" class="text-xl font-bold">GeTraf</a>
+            <a href="/" class="text-xl font-bold text-gold-400">MyPaywise</a>
             {% if current_user.is_authenticated %}
             <div class="flex items-center gap-4">
                 {% if current_user.perfil in ['gestor_dono', 'gestor'] %}
-                <a href="{{ url_for('gestor.clientes') }}" class="hover:text-indigo-200">Clientes</a>
+                <a href="{{ url_for('gestor.clientes') }}" class="hover:text-gold-300 text-gray-300">Clientes</a>
                 {% if current_user.perfil == 'gestor_dono' %}
-                <a href="{{ url_for('gestor.gestores') }}" class="hover:text-indigo-200">Gestores</a>
+                <a href="{{ url_for('gestor.gestores') }}" class="hover:text-gold-300 text-gray-300">Gestores</a>
                 {% endif %}
                 {% endif %}
                 {% if current_user.perfil == 'cliente' %}
-                <a href="{{ url_for('cliente.painel') }}" class="hover:text-indigo-200">Painel</a>
+                <a href="{{ url_for('cliente.painel') }}" class="hover:text-gold-300 text-gray-300">Painel</a>
                 {% if current_user.empresa_id %}
-                <a href="{{ url_for('leads.lista', empresa_id=current_user.empresa_id) }}" class="hover:text-indigo-200">Leads</a>
+                <a href="{{ url_for('leads.lista', empresa_id=current_user.empresa_id) }}" class="hover:text-gold-300 text-gray-300">Leads</a>
                 {% endif %}
                 {% endif %}
-                <span class="text-indigo-200 text-sm">{{ current_user.nome }}</span>
-                <a href="{{ url_for('auth.logout') }}" class="bg-indigo-700 px-3 py-1 rounded hover:bg-indigo-800 text-sm">Sair</a>
+                <span class="text-gray-400 text-sm">{{ current_user.nome }}</span>
+                <a href="{{ url_for('auth.logout') }}" class="bg-brand-700 px-3 py-1 rounded hover:bg-brand-600 text-sm text-gold-400">Sair</a>
             </div>
             {% endif %}
         </div>

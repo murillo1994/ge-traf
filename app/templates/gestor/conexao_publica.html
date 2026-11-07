@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conectar Conta - MyPaywise</title>
+    <script src="https://cdn.tailwindcss.com/3.4.1"></script>
+    <script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                colors: {
+                    brand: { 900: '#0a0a0a', 800: '#1a1a1a', 700: '#2a2a2a' },
+                    gold: { 50: '#fdf8e8', 100: '#f9edcc', 200: '#f3db99', 300: '#edc966', 400: '#d4a935', 500: '#b8922e' },
+                }
+            }
+        }
+    }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>body { font-family: 'Inter', sans-serif; }</style>
+</head>
+<body class="bg-gray-50 min-h-screen flex items-center justify-center px-4">
+    <div class="max-w-md w-full">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-brand-900">MyPaywise</h1>
+            <p class="text-gray-500 mt-1">Gestão de Tráfego Pago</p>
+        </div>
+
+        {% if erro %}
+        <div class="bg-white rounded-xl shadow-lg border border-red-100 p-8 text-center">
+            <div class="text-4xl mb-4">⚠️</div>
+            <h2 class="text-xl font-bold text-gray-800 mb-2">Link inválido</h2>
+            <p class="text-gray-600">Este link expirou ou é inválido. Peça um novo link ao seu gestor de tráfego.</p>
+        </div>
+        {% else %}
+        <div class="bg-white rounded-xl shadow-lg border border-gray-100 p-8">
+            <div class="text-center mb-6">
+                <h2 class="text-xl font-bold text-brand-900">Olá, {{ empresa.nome }}!</h2>
+                <p class="text-gray-600 mt-2">Para que possamos gerenciar suas campanhas de tráfego pago, precisamos de acesso à sua conta de anúncios do Meta (Facebook/Instagram).</p>
+            </div>
+
+            <div class="bg-gold-50 border border-gold-200 rounded-lg p-4 mb-6 text-sm">
+                <p class="font-semibold text-brand-900 mb-2">O que vamos acessar:</p>
+                <ul class="space-y-1 text-gray-700">
+                    <li>✓ Leitura de métricas das campanhas</li>
+                    <li>✓ Dados de desempenho dos anúncios</li>
+                </ul>
+                <p class="mt-2 text-gray-500">Não fazemos alterações nas suas campanhas.</p>
+            </div>
+
+            <a href="{{ url_for('gestor.conexao_publica_autorizar', token=token) }}"
+               class="block w-full bg-brand-900 text-gold-400 py-3 rounded-lg hover:bg-brand-800 font-semibold text-center text-lg">
+                Conectar com Meta
+            </a>
+
+            <p class="text-xs text-gray-400 text-center mt-4">Ao clicar, você será redirecionado para o Facebook para autorizar o acesso.</p>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>

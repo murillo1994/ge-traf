@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Link de Conexão - {{ empresa.nome }}{% endblock %}
+
+{% block content %}
+<div class="max-w-lg mx-auto mt-10">
+    <h1 class="text-2xl font-bold text-brand-900 mb-2">Link de Conexão</h1>
+    <p class="text-gray-600 mb-6">Envie este link para <strong>{{ empresa.nome }}</strong> autorizar a conta de anúncios Meta.</p>
+
+    <div class="bg-white rounded-xl shadow-lg border border-gray-100 p-6 space-y-4">
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Link para enviar ao cliente:</label>
+            <div class="flex gap-2">
+                <input type="text" id="link" value="{{ link }}" readonly
+                       class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm bg-gray-50 text-gray-700">
+                <button onclick="copiarLink()" id="btn-copiar"
+                        class="bg-brand-900 text-gold-400 px-4 py-2.5 rounded-lg hover:bg-brand-800 text-sm font-medium whitespace-nowrap">
+                    Copiar
+                </button>
+            </div>
+        </div>
+
+        <div class="bg-gold-50 border border-gold-200 rounded-lg p-4 text-sm text-brand-700">
+            <p class="font-semibold mb-1">Como funciona:</p>
+            <ol class="list-decimal ml-4 space-y-1">
+                <li>Copie o link e envie pelo WhatsApp ou e-mail</li>
+                <li>O cliente clica e autoriza o acesso à conta de anúncios</li>
+                <li>Pronto! A conta fica conectada automaticamente</li>
+            </ol>
+            <p class="mt-2 text-gray-500">O link expira em 7 dias.</p>
+        </div>
+    </div>
+
+    <a href="{{ url_for('gestor.cliente_detalhe', id=empresa.id) }}" class="inline-block mt-4 text-sm text-gray-500 hover:text-gray-700">&larr; Voltar ao cliente</a>
+</div>
+
+<script>
+function copiarLink() {
+    var input = document.getElementById('link');
+    input.select();
+    document.execCommand('copy');
+    var btn = document.getElementById('btn-copiar');
+    btn.textContent = 'Copiado!';
+    btn.classList.remove('bg-brand-900');
+    btn.classList.add('bg-green-600', 'text-white');
+    setTimeout(function() {
+        btn.textContent = 'Copiar';
+        btn.classList.remove('bg-green-600', 'text-white');
+        btn.classList.add('bg-brand-900');
+    }, 2000);
+}
+</script>
+{% endblock %}

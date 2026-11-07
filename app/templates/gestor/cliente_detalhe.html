@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}{{ empresa.nome }} - GeTraf{% endblock %}
+{% block title %}{{ empresa.nome }} - MyPaywise{% endblock %}
 
 {% block content %}
 <div class="max-w-2xl mx-auto">
@@ -33,13 +33,14 @@
             </div>
         </div>
 
-        <div class="flex gap-3 pt-4 border-t">
+        <div class="flex flex-wrap gap-3 pt-4 border-t">
             {% if empresa.status_conexao in ['aguardando', 'reconexao_necessaria'] %}
-            <a href="{{ url_for('gestor.conectar_meta', id=empresa.id) }}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Conectar Meta</a>
+            <a href="{{ url_for('gestor.conectar_meta', id=empresa.id) }}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Conectar Meta</a>
+            <a href="{{ url_for('gestor.gerar_link_conexao', id=empresa.id) }}" class="bg-brand-900 text-gold-400 px-4 py-2 rounded-lg hover:bg-brand-800">Gerar Link p/ Cliente</a>
             {% endif %}
-            <a href="{{ url_for('leads.lista', empresa_id=empresa.id) }}" class="bg-gray-100 text-gray-700 px-4 py-2 rounded hover:bg-gray-200">Ver Leads</a>
+            <a href="{{ url_for('leads.lista', empresa_id=empresa.id) }}" class="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200">Ver Leads</a>
             {% if empresa.status_conexao == 'conectado' %}
-            <a href="{{ url_for('gestor.cliente_painel', id=empresa.id) }}" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Ver Painel</a>
+            <a href="{{ url_for('gestor.cliente_painel', id=empresa.id) }}" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">Ver Painel</a>
             {% endif %}
         </div>
     </div>
